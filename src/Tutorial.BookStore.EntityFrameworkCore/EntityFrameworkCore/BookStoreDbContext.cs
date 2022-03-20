@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Tutorial.BookStore.Books;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
@@ -18,10 +20,7 @@ namespace Tutorial.BookStore.EntityFrameworkCore;
 [ReplaceDbContext(typeof(IIdentityDbContext))]
 [ReplaceDbContext(typeof(ITenantManagementDbContext))]
 [ConnectionStringName("Default")]
-public class BookStoreDbContext :
-    AbpDbContext<BookStoreDbContext>,
-    IIdentityDbContext,
-    ITenantManagementDbContext
+public class BookStoreDbContext : AbpDbContext<BookStoreDbContext>, IIdentityDbContext, ITenantManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
@@ -50,13 +49,12 @@ public class BookStoreDbContext :
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
+    // Entities
+    public DbSet<Book> Books { get; set; }
+
     #endregion
 
-    public BookStoreDbContext(DbContextOptions<BookStoreDbContext> options)
-        : base(options)
-    {
-
-    }
+    public BookStoreDbContext(DbContextOptions<BookStoreDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -75,11 +73,13 @@ public class BookStoreDbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(BookStoreConsts.DbTablePrefix + "YourEntities", BookStoreConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<Book>(b =>
+        {
+            const string booksTableName = nameof(Books);
+            b.ToTable(BookStoreConsts.DbTablePrefix + booksTableName, BookStoreConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(p => p.Name).IsRequired()
+                .HasMaxLength(128);
+        });
     }
 }
