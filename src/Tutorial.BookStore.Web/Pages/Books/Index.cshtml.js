@@ -19,12 +19,14 @@
                             [
                                 {
                                     text: L('Edit'),
+                                    visable: abp.auth.isGranted('BookStore.Books.Edit'),
                                     action: function (data) {
                                         editModal.open({ id: data.record.id });
                                     }
                                 },
                                 {
                                     text: L('Delete'),
+                                    visable: abp.auth.isGranted('BookStore.Books.Delete'),
                                     confirmMessage: function (data) {
                                         return L('BookDeletionConfirmationMessage', data.record.name);
                                     },

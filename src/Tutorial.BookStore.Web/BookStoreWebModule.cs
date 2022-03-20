@@ -1,41 +1,37 @@
-using System;
-using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using System;
+using System.IO;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Tutorial.BookStore.EntityFrameworkCore;
 using Tutorial.BookStore.Localization;
 using Tutorial.BookStore.MultiTenancy;
+using Tutorial.BookStore.Permissions;
 using Tutorial.BookStore.Web.Menus;
-using Microsoft.OpenApi.Models;
 using Volo.Abp;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Authentication.JwtBearer;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.Localization;
-using Volo.Abp.AspNetCore.Mvc.UI;
-using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
-using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
 using Volo.Abp.AutoMapper;
-using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity.Web;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
-using Volo.Abp.PermissionManagement.Web;
 using Volo.Abp.SettingManagement.Web;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.TenantManagement.Web;
-using Volo.Abp.UI.Navigation.Urls;
-using Volo.Abp.UI;
 using Volo.Abp.UI.Navigation;
+using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
 
 namespace Tutorial.BookStore.Web;
@@ -85,6 +81,17 @@ public class BookStoreWebModule : AbpModule
         ConfigureNavigationServices();
         ConfigureAutoApiControllers();
         ConfigureSwaggerServices(context.Services);
+        ConfigureRazorPageAuthorizePages();
+    }
+
+    private void ConfigureRazorPageAuthorizePages()
+    {
+        Configure<RazorPagesOptions>(options =>
+        {
+            options.Conventions.AuthorizePage("/Books/Index", BookStorePermissions.Books.Default);
+            options.Conventions.AuthorizePage("/Books/CreateModel", BookStorePermissions.Books.Create);
+            options.Conventions.AuthorizePage("/Books/EditModal", BookStorePermissions.Books.Edit);
+        });
     }
 
     private void ConfigureUrls(IConfiguration configuration)
