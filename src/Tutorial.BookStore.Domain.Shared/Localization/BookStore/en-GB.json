@@ -34,6 +34,10 @@
     "PublishDate": "Publish date",
     "SuccessfullyDeleted": "Successfully deleted!",
     "Type": "Type",
-    "Welcome": "Welcome"
+    "Welcome": "Welcome",
+    "Permission:Authors": "Author Management",
+    "Permission:Authors.Create": "Creating new authors",
+    "Permission:Authors.Edit": "Editing the authors",
+    "Permission:Authors.Delete": "Deleting the authors"
   }
 }
