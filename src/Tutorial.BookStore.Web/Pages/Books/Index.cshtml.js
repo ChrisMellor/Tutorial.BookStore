@@ -1,5 +1,7 @@
 ﻿$(function () {
-    var l = abp.localization.getResource('BookStore');
+    var L = abp.localization.getResource('BookStore');
+    var createModal = new abp.ModalManager(abp.appPath + 'Books/CreateModal');
+    var editModal = new abp.ModalManager(abp.appPath + 'Books/EditModal');
 
     var dataTable = $('#BooksTable').DataTable(
         abp.libs.datatables.normalizeConfiguration({
@@ -11,18 +13,46 @@
             ajax: abp.libs.datatables.createAjax(tutorial.bookStore.books.book.getList),
             columnDefs: [
                 {
-                    title: l('Name'),
-                    data: "name"
-                },
-                {
-                    title: l('Type'),
-                    data: "type",
-                    render: function (data) {
-                        return l('Enum:BookType:' + data);
+                    title: L('Actions'),
+                    rowAction: {
+                        items:
+                            [
+                                {
+                                    text: L('Edit'),
+                                    action: function (data) {
+                                        editModal.open({ id: data.record.id });
+                                    }
+                                },
+                                {
+                                    text: L('Delete'),
+                                    confirmMessage: function (data) {
+                                        return L('BookDeletionConfirmationMessage', data.record.name);
+                                    },
+                                    action: function (data) {
+                                        tutorial.bookStore.books.book
+                                            .delete(data.record.id)
+                                            .then(function () {
+                                                abp.notify.info(L('SuccessfullyDeleted'));
+                                                dataTable.ajax.reload();
+                                            });
+                                    }
+                                }
+                            ]
                     }
                 },
                 {
-                    title: l('PublishDate'),
+                    title: L('Name'),
+                    data: "name"
+                },
+                {
+                    title: L('Type'),
+                    data: "type",
+                    render: function (data) {
+                        return L('Enum:BookType:' + data);
+                    }
+                },
+                {
+                    title: L('PublishDate'),
                     data: "publishDate",
                     render: function (data) {
                         return luxon
@@ -33,11 +63,11 @@
                     }
                 },
                 {
-                    title: l('Price'),
+                    title: L('Price'),
                     data: "price"
                 },
                 {
-                    title: l('CreationTime'), data: "creationTime",
+                    title: L('CreationTime'), data: "creationTime",
                     render: function (data) {
                         return luxon
                             .DateTime
@@ -49,4 +79,17 @@
             ]
         })
     );
+
+    createModal.onResult(function () {
+        dataTable.ajax.reload();
+    });
+
+    editModal.onResult(function () {
+        dataTable.ajax.reload();
+    });
+
+    $('#NewBookButton').click(function (e) {
+        e.preventDefault();
+        createModal.open();
+    });
 });
