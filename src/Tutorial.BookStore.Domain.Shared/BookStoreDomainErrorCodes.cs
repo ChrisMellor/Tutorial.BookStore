@@ -1,6 +1,7 @@
-﻿namespace Tutorial.BookStore;
-
-public static class BookStoreDomainErrorCodes
+﻿namespace Tutorial.BookStore
 {
-    /* You can add your business exception error codes here, as constants */
+    public static class BookStoreDomainErrorCodes
+    {
+        public const string AuthorAlreadyExists = "BookStore:00001";
+    }
 }
