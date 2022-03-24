@@ -2,21 +2,24 @@
 using System.Linq;
 using Shouldly;
 using System.Threading.Tasks;
+using Tutorial.BookStore.Authors;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Validation;
 using Xunit;
 
 namespace Tutorial.BookStore.Books
 {
-    public sealed class BookAppService_Tests : BookStoreApplicationTestBase
+    public class BookAppService_Tests : BookStoreApplicationTestBase
     {
         private readonly IBookAppService _bookAppService;
+        private readonly IAuthorAppService _authorAppService;
 
         public BookAppService_Tests()
         {
             _bookAppService = GetRequiredService<IBookAppService>();
+            _authorAppService = GetRequiredService<IAuthorAppService>();
         }
-        
+
         [Fact]
         public async Task Should_Get_List_Of_Books()
         {
@@ -25,22 +28,24 @@ namespace Tutorial.BookStore.Books
 
             //Assert
             result.TotalCount.ShouldBeGreaterThan(0);
-            result.Items.ShouldContain(b => b.Name == "1984");
+            result.Items.ShouldContain(b => b.Name == "1984" && b.AuthorName == "George Orwell");
         }
 
         [Fact]
         public async Task Should_Create_A_Valid_Book()
         {
+            var authors = await _authorAppService.GetListAsync(new GetAuthorListDto());
+            var firstAuthor = authors.Items.First();
+
             //Act
-            var createUpdateBookDto = new CreateUpdateBookDto
+            var result = await _bookAppService.CreateAsync(new CreateUpdateBookDto
             {
+                AuthorId = firstAuthor.Id,
                 Name = "New test book 42",
                 Price = 10,
-                PublishDate = DateTime.Now,
+                PublishDate = System.DateTime.Now,
                 Type = BookType.ScienceFiction
-            };
-
-            var result = await _bookAppService.CreateAsync(createUpdateBookDto);
+            });
 
             //Assert
             result.Id.ShouldNotBe(Guid.Empty);
@@ -52,19 +57,16 @@ namespace Tutorial.BookStore.Books
         {
             var exception = await Assert.ThrowsAsync<AbpValidationException>(async () =>
             {
-                var createUpdateBookDto = new CreateUpdateBookDto
+                await _bookAppService.CreateAsync(new CreateUpdateBookDto
                 {
                     Name = "",
                     Price = 10,
                     PublishDate = DateTime.Now,
                     Type = BookType.ScienceFiction
-                };
-
-                await _bookAppService.CreateAsync(createUpdateBookDto);
+                });
             });
 
-            exception.ValidationErrors
-                .ShouldContain(err => err.MemberNames.Any(mem => mem == "Name"));
+            exception.ValidationErrors.ShouldContain(err => err.MemberNames.Any(m => m == "Name"));
         }
     }
 }
